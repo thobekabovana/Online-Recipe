@@ -1,4 +1,29 @@
 {
-    "recipes": [],
-    "name": []
+  "recipes": [
+    {
+      "id": "8262",
+      "recipeName": "spicy chicken",
+      "ingredients": "[\"water\",\"chickin\",\"salt\",\"cooking oil\",\"spice\",\"chilies\"]",
+      "instructions": "[\"lkahehfje'[\",\"jshdfiugwlif\",\"kjehoeur\"]",
+      "category": "maincourse",
+      "prepTime": "50"
+    }
+  ],
+  "user": [
+    {
+      "id": "1",
+      "name": "John Doe",
+      "email": "john.doe@example.com",
+      "password": "password123",
+      "confirmPassword": "password123"
+    },
+    {
+      "id": "2",
+      "name": "Doe",
+      "email": "doe@example.com",
+      "password": "word123",
+      "confirmPassword": "word123"
+    }
+  ],
+  "name": []
 }

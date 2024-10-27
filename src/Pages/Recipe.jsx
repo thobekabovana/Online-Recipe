@@ -1,178 +1,200 @@
-import React from 'react'
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 
+const RecipeForm = () => {
+  const [recipeName, setRecipeName] = useState('');
+  const [ingredients, setIngredients] = useState(['']);
+  const [instructions, setInstructions] = useState(['']);
+  const [category, setCategory] = useState('');
+  const [prepTime, setPrepTime] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
 
-export default function Recipe() {
+  const navigate = useNavigate();
 
-  const [recipe, setRecipe] = useState([]);
-  const [newRecipe, setNewRecipe] = useState({});
-  const [editingRecipe, setEditingRecipe] = useState(null);
-  const [searchTerm, setSearchTerm] = useState('');
-  const [filteredRecipe, setFilteredRecipe] = useState([]);
+  const handleIngredientChange = (index, value) => {
+    const newIngredients = [...ingredients];
+    newIngredients[index] = value;
+    setIngredients(newIngredients);
+  };
 
-  const handleAddRecipe = async () => {
+  const handleInstructionChange = (index, value) => {
+    const newInstructions = [...instructions];
+    newInstructions[index] = value;
+    setInstructions(newInstructions);
+  };
+
+  const addIngredient = () => {
+    setIngredients([...ingredients, '']);
+  };
+
+  const addInstruction = () => {
+    setInstructions([...instructions, '']);
+  };
+
+  const validateForm = () => {
+    if (!recipeName || !category || !prepTime) {
+      setError('All fields are required.');
+      return false;
+    }
+    return true;
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    
+    if (!validateForm()) return; 
+
+    setLoading(true);
+    setError(''); 
+
+    const recipeData = {
+      recipeName,
+      ingredients: JSON.stringify(ingredients),
+      instructions: JSON.stringify(instructions),
+      category,
+      prepTime,
+    };
+
     try {
-      const response = await fetch('https://localhost:3000/recipes', {
+      const response = await fetch('http://localhost:3000/recipes', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(newRecipe),
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(recipeData),
       });
-  
-      const data = await response.json();
-      setRecipe([...recipe, data]);
-      setNewRecipe({});
+
+      if (response.ok) {
+        // Reset form
+        setRecipeName('');
+        setIngredients(['']);
+        setInstructions(['']);
+        setCategory('');
+        setPrepTime('');
+        navigate('/recipe'); 
+      } else {
+        setError('Error submitting recipe. Please try again.');
+      }
     } catch (error) {
-      console.error(error);
+      setError('Error: ' + error.message);
+    } finally {
+      setLoading(false);
     }
   };
 
   return (
-    <>
-      <div>
-      <div style={{
-        alignItems: "center",
-      }}>
-
-        <h1 style={{ display: "flex", color: "black", alignItems: "center", justifyContent: "center", marginTop: "5%" }}>Recipes</h1>
-
-        <div style={{display: "flex",
-          flexDirection: "column",
-          alignItems: "center",
-          marginLeft: "25%",
-          marginTop: "5%",
-          width: "50%",
-          height: "30%",
-          borderRadius: "5px",
-          boxShadow: "0 5px 10px rgba(2, 2, 2, 2.1)",
-          backgroundColor: "#DDDCD6",}}>
-
-        <form style={{
-          marginTop: "2%",
-        }}>
-
-          <div style={{marginBottom: "10px"}}>
-            <input type="text" style={{ width: "120%", height: "5vh" }}
-                   value={newRecipe.title}
-                   onChange={(event) => setNewRecipe({ ...newRecipe, name: event.target.value })}
-                   placeholder='Name of the Food' />
-          </div>
-          <br />
-
-          <div>
-            <input type="text" style={{ width: "120%", height: "5vh" }}
-              value={newRecipe.description}
-              onChange={(event) => setNewRecipe({ ...newRecipe, recipes: event.target.value })}
-              placeholder='Add Recipes' />
-          </div>
-          <br />
-
-          
-          <br />
-
-          <button className='add-btn' type="submit" onClick={handleAddRecipe}>Add Task</button>
-
-        </form>
-        </div>
-        
-
-
-
-      <div>
-  <h1
-    style={{
-      display: "flex",
-      color: "black",
-      alignItems: "center",
-      justifyContent: "center",
-      marginTop: "5%",
-    }}
+    <form 
+    className="max-w-xl mx-auto p-8 bg-black text-gray-100 shadow-xl rounded-2xl mt-12 space-y-6"
+    onSubmit={handleSubmit}
   >
-    Recipe List
-  </h1>
-
-  {/* <input type="text" value={searchTerm} onChange={handleSearch} placeholder="Search by ID" style={{
-        width: "23%",
-        height: "20px",
-        padding: "10px",
-        fontSize: "16px",
-        border: "1px solid #ccc",
-        borderRadius: "5px",
-        marginLeft: "37.5%",
-        marginBottom: "20px",
-        
-      }}/> */}
-
-  <ul
-    style={{
-      display: "flex",
-      flexWrap: "wrap",
-      justifyContent: "space-between",
-      padding: "6%",
-    }}
-  >
-    {Array.isArray(recipe) ? (
-      recipe.map((recipeItem) => (
-        <li key={recipeItem.id} style={{ margin: "7.5%" }}>
-          <div
-            style={{
-              display: "flex",
-              flexDirection: "column",
-              padding: "15px",
-              width: "30%",
-              height: "30%",
-              borderRadius: "5px",
-              boxShadow: "0 5px 10px rgba(2, 2, 2, 2.1)",
-              backgroundColor: "grey",
-              backgroundSize: "cover",
-              backgroundRepeat: "no-repeat",
-              backgroundPosition: "center",
-            }}
-          >
-            <h2>{recipeItem.name}</h2>
-            <p>{recipeItem.recipes}</p>
-          
-
-            <button onClick={() => setEditingRecipe(recipeItem)}>Edit</button>
-            {/* <button onClick={() => handleDeleteTodo(todoItem.id)}>Delete</button> */}
-
-            {editingRecipe === recipeItem && (
-              <form>
-                <label>
-                  Name of the Food:
-                  <input
-                    type="text"
-                    value={editingRecipe.name}
-                    // onChange={(event) => handleEditTaskChange(event, 'title')}
-                  />
-                </label>
-                <br />
-                <label>
-                  Recipes:
-                  <input
-                    type="text"
-                    value={editingRecipe.recipes}
-                    // onChange={(event) => handleEditTaskChange(event, 'description')}
-                  />
-                </label>
-                <br />
-                
-                <br />
-
-                {/* <button type="submit" onClick={() => handleUpdateTodo(editingTodo)}>
-                  Update
-                </button> */}
-              </form>
-            )}
-          </div>
-        </li>
-      ))
-    ) : (
-      <p>No todo items found.</p>
+    <h2 className="text-3xl font-extrabold text-center tracking-wide">Add New Recipe</h2>
+  
+    {error && (
+      <p className="bg-red-500 text-white py-2 px-4 rounded-lg text-center">
+        {error}
+      </p>
     )}
-  </ul>
-</div>
-      </div>
+  
+  <Link to="/display">
+        <button className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
+          Recipes
+        </button>
+      </Link>
+
+    <div>
+      <label className="block text-gray-300 mb-1">Recipe Name</label>
+      <input
+        type="text"
+        className="w-full p-3 bg-gray-800 text-gray-100 border border-gray-700 rounded-lg focus:ring-2 focus:ring-white"
+        value={recipeName}
+        onChange={(e) => setRecipeName(e.target.value)}
+        required
+      />
     </div>
-    </>
-  )
-}
+  
+    <div>
+      <label className="block text-gray-300 mb-1">Ingredients</label>
+      {ingredients.map((ingredient, index) => (
+        <input
+          key={index}
+          type="text"
+          className="w-full p-3 bg-gray-800 border border-gray-700 rounded-lg mb-2 text-gray-100 focus:ring-2 focus:ring-gray-400"
+          value={ingredient}
+          onChange={(e) => handleIngredientChange(index, e.target.value)}
+          placeholder={`Ingredient ${index + 1}`}
+          required
+        />
+      ))}
+      <button 
+        type="button" 
+        className="mt-2 text-white underline hover:text-gray-400"
+        onClick={addIngredient}
+      >
+        + Add Ingredient
+      </button>
+    </div>
+  
+    <div>
+      <label className="block text-gray-300 mb-1">Instructions</label>
+      {instructions.map((instruction, index) => (
+        <input
+          key={index}
+          type="text"
+          className="w-full p-3 bg-gray-800 border border-gray-700 rounded-lg mb-2 text-gray-100 focus:ring-2 focus:ring-gray-400"
+          value={instruction}
+          onChange={(e) => handleInstructionChange(index, e.target.value)}
+          placeholder={`Step ${index + 1}`}
+          required
+        />
+      ))}
+      <button 
+        type="button" 
+        className="mt-2 text-white underline hover:text-gray-400"
+        onClick={addInstruction}
+      >
+        + Add Instruction
+      </button>
+    </div>
+  
+    <div>
+      <label className="block text-gray-300 mb-1">Category</label>
+      <select
+        className="w-full p-3 bg-gray-900 border border-gray-700 rounded-lg focus:ring-2 focus:ring-gray-400 text-gray-100"
+        value={category}
+        onChange={(e) => setCategory(e.target.value)}
+        required
+      >
+        <option value="">Select Category</option>
+        <option value="dessert">Dessert</option>
+        <option value="maincourse">Main Course</option>
+        <option value="appetizer">Appetizer</option>
+      </select>
+    </div>
+  
+    <div>
+      <label className="block text-gray-300 mb-1">Preparation Time</label>
+      <input
+        type="text"
+        className="w-full p-3 bg-gray-800 text-gray-100 border border-gray-700 rounded-lg focus:ring-2 focus:ring-gray-400"
+        value={prepTime}
+        onChange={(e) => setPrepTime(e.target.value)}
+        placeholder="e.g., 30 minutes"
+        required
+      />
+    </div>
+  
+    <button
+      type="submit"
+      className={`w-full py-3 bg-gray-700 text-white font-semibold rounded-lg hover:bg-gray-600 transition duration-200 ${loading ? 'opacity-50 cursor-not-allowed' : ''}`}
+      disabled={loading}
+    >
+      {loading ? 'Submitting...' : 'Submit Recipe'}
+    </button>
+  </form>
+  
+  );
+};
+
+export default RecipeForm;
